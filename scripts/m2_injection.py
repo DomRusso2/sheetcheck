@@ -1,4 +1,4 @@
-﻿"""M2: measure recall by injecting sheet switches of known size and location.
+"""M2: measure recall by injecting sheet switches of known size and location.
 
 Specificity was measured on a trusted trace; this measures the other half.
 A switch is injected at a known column, so every pair is labelled:

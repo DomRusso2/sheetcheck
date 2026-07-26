@@ -1,4 +1,4 @@
-﻿"""M3: measure traced-surface geometry across multiple scrolls.
+"""M3: measure traced-surface geometry across multiple scrolls.
 
 Everything measured so far came from a single scroll, which is too thin to
 publish.  This repeats the measurements across the collection so the numbers

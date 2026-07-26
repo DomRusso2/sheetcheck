@@ -1,4 +1,4 @@
-﻿"""P1 gate: does surface placement predict ink detectability?
+"""P1 gate: does surface placement predict ink detectability?
 
 Open Problem 6 lists six candidate causes for ink models failing to
 generalise -- scan quality, *surface misplacement*, label mismatch,
