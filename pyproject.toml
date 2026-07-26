@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sheetcheck"
+version = "0.1.0"
+description = "Geometric quality measurement for traced papyrus surfaces in Herculaneum scroll CT data"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "zarr>=3.0",
+    "fsspec>=2024.2",
+    "s3fs>=2024.2",
+    "tifffile>=2024.1",
+    "imagecodecs>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["sheetcheck*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
