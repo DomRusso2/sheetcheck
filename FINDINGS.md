@@ -1,4 +1,4 @@
-# Measured geometry of published Herculaneum traces
+﻿# Measured geometry of published Herculaneum traces
 
 Every number below is produced by the scripts in `scripts/`, reading only the
 public `s3://vesuvius-challenge-open-data/` bucket. Medians carry bootstrap 95%
@@ -46,6 +46,29 @@ fixed:
 
 Two independently scanned volumes of the same segment agree as well
 (2.399 um: 230 [220, 238]; 1.129 um: 222 [209, 236]).
+
+**The measurement convention does not explain the gap.** Pitch along the
+surface normal is a *perpendicular* sheet spacing; spiral fitting yields a
+*radial* advance per turn. The surface normal is oblique to the radial
+direction by 19-28 degrees (M7), so the two could differ by up to ~13% -- the
+same order as the disagreement above, which would be a fatal confound.
+
+Measuring both on the *same* rays from the *same* points on PHerc1667
+(`scripts/m8_pitch_convention.py`, n=421) settles it:
+
+| Quantity | Value (95% CI) |
+| --- | --- |
+| Perpendicular (normal ray) | 240.1 [219.5, 250.4] |
+| Radial (radial ray) | 238.7 [228.6, 249.7] |
+| Ratio radial/perpendicular | 1.024 [1.004, 1.042] |
+| Predicted 1/cos(theta) | 1.060 [1.052, 1.068] |
+
+The convention effect is real but only ~2.4%, against a ~28% discrepancy.
+**Both conventions exclude 187.3 um.** The direction predicted by geometry is
+confirmed (radial >= perpendicular); the magnitude is about 40% of the
+idealised parallel-plane prediction, and the two intervals do not overlap --
+expected, since real wraps are curved rather than parallel planes, which
+dilutes the obliquity effect.
 
 **Why the discrepancy matters.** The winding-ruler figure (median 187.3 um, IQR
 181.5-193.4) is a distribution of *per-scroll medians across 35+ scrolls*. It is
@@ -229,6 +252,8 @@ python scripts/m3_survey.py --patches 32  # cross-scroll table (F1, F2, F4)
 python scripts/m4_convergence.py          # sampling budget justification
 python scripts/m5_resolution.py           # two independent scans (F1, F4, F8)
 python scripts/m6_pyramid.py              # 8x voxel-size series (F1, F8, F10)
+python scripts/m7_normal_vs_radial.py     # normal-vs-radial obliquity (F1)
+python scripts/m8_pitch_convention.py     # paired pitch conventions (F1)
 python scripts/p1_placement.py            # placement vs ink (F5, F6)
 python scripts/p0_ply.py                  # fiber orientation (F7)
 python scripts/diag_orient.py             # mesh vs CT normals (F9)
