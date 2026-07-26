@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 import time
 from pathlib import Path
@@ -89,7 +88,7 @@ def main() -> int:
     if not rows:
         return 1
 
-    print(f"\n=== resolution series, scroll and segment held fixed ===")
+    print("\n=== resolution series, scroll and segment held fixed ===")
     hdr = (f"{'voxel um':>9}{'rays':>6}{'gapstruct':>11}"
            f"{'pitch um':>20}{'planarity':>18}{'offset um':>18}")
     print(hdr)

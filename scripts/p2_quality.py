@@ -162,7 +162,7 @@ def main() -> int:
               f"{mb:.0f} MB, {time.time()-t0:.0f}s")
 
     names = ["planarity", "period strength", "contrast"]
-    print(f"\n=== CT quality: traced regions vs tracing failures ===")
+    print("\n=== CT quality: traced regions vs tracing failures ===")
     print(f"  {'metric':>16} {'traced median':>14} {'hole median':>13} {'AUC':>7}")
     aucs = []
     for i, nm in enumerate(names):

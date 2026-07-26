@@ -30,7 +30,6 @@ from dataclasses import dataclass
 import numpy as np
 
 from .io import Volume
-from .profile import find_sheets
 
 
 def count_air_gaps(profile: np.ndarray, step_um: float,

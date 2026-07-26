@@ -23,7 +23,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sheetcheck.io import BUCKET, Surface, Volume  # noqa: E402
-from sheetcheck.support import ramp_switch, runs_below, support_scores  # noqa: E402
+from sheetcheck.support import ramp_switch, support_scores  # noqa: E402
 
 SCROLL = "PHerc1667"
 SEGMENT = "20260108140509-w011_20260108140509268_flatboi"
@@ -141,7 +141,7 @@ def main() -> int:
     print(f"  fraction below {args.thresh}: {np.mean(c < args.thresh):.2%} "
           f"<- false-positive rate")
 
-    print(f"\n=== detection of an injected ramp ===")
+    print("\n=== detection of an injected ramp ===")
     rf = np.array(ramp_flags)
     cf = np.array(ctrl_flags)
     print(f"  flagged inside ramp   : {rf.mean():.1%}  (recall)")

@@ -77,7 +77,7 @@ def main() -> int:
     print(f"  ray-marched in {time.time()-t1:.0f}s")
 
     s = summarise(pairs)
-    print(f"\n=== holonomy on a TRUSTED trace (false-positive test) ===")
+    print("\n=== holonomy on a TRUSTED trace (false-positive test) ===")
     print(f"  usable pairs   : {s['n']}  (rejected {s.get('rejected', 0)})")
     print(f"  gap median     : {s['gap_median_um']:.0f} um  "
           f"IQR {s['gap_iqr_um'][0]:.0f}-{s['gap_iqr_um'][1]:.0f}")

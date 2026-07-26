@@ -113,7 +113,7 @@ def main() -> int:
 
     sup = np.array([r["support"]["p50"] for r in out_rows], dtype=float)
     sup = sup[np.isfinite(sup)]
-    print(f"\nsanity: support should sit near 1.0 on correctly placed traces")
+    print("\nsanity: support should sit near 1.0 on correctly placed traces")
     print(f"  across-scroll median of per-segment support: {np.median(sup):+.2f}")
     if np.median(sup) < 0.5:
         print("  WARNING: traces score closer to gap level than papyrus level;")

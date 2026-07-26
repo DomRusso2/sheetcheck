@@ -73,8 +73,8 @@ def main() -> int:
         print("need at least two levels")
         return 1
 
-    print(f"\n=== voxel size vs measurable structure "
-          f"(scroll/segment/scan fixed) ===")
+    print("\n=== voxel size vs measurable structure "
+          "(scroll/segment/scan fixed) ===")
     hdr = (f"{'voxel um':>9}{'rays':>6}{'gapstruct':>11}"
            f"{'pitch um':>20}{'planarity':>18}")
     print(hdr)

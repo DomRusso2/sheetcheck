@@ -162,7 +162,7 @@ def main() -> int:
           f"(bias => trace sits consistently to one side)")
     print(f"  fraction beyond 30 um: {np.mean(a > 30):.1%}")
 
-    print(f"\n=== ink vs placement ===")
+    print("\n=== ink vs placement ===")
     print(f"  {'|offset| um':>12} {'n':>5} {'ink mean':>10} {'ink contrast':>13}")
     edges = [0, 10, 20, 30, 45, 60, 1e9]
     for lo, hi in zip(edges[:-1], edges[1:]):

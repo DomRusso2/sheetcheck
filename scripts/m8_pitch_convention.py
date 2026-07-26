@@ -155,7 +155,7 @@ def main() -> int:
         print("  -> the idealised parallel-plane model over-predicts, as")
         print("     expected for curved, locally non-parallel wraps.")
 
-    print(f"\n  comparison against the cited 187.3 um spiral pitch:")
+    print("\n  comparison against the cited 187.3 um spiral pitch:")
     for name, a in (("perpendicular", P), ("radial", R)):
         med, lo, hi = bootstrap_ci(a)
         verdict = "excludes" if lo > 187.3 else "includes"
