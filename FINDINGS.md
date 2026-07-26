@@ -63,6 +63,11 @@ Measuring both on the *same* rays from the *same* points on PHerc1667
 | Ratio radial/perpendicular | 1.024 [1.004, 1.042] |
 | Predicted 1/cos(theta) | 1.060 [1.052, 1.068] |
 
+(The paired run reports 240 um for PHerc1667 where the survey table reports
+222. It uses a longer ray and a different acceptance threshold, so the point
+estimates differ by ~8%; the intervals overlap at 220-236 and the comparison
+against 187.3 is unaffected. The two are consistent, not contradictory.)
+
 The convention effect is real but only ~2.4%, against a ~28% discrepancy.
 **Both conventions exclude 187.3 um.** The direction predicted by geometry is
 confirmed (radial >= perpendicular); the magnitude is about 40% of the
