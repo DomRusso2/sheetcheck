@@ -13,6 +13,42 @@ whether **surface misplacement** explains ink-detection failures -- and along
 the way it produced a set of measurements about the published traces that had
 not been written down anywhere.
 
+## What it found
+
+Full detail, with methods and confidence intervals, in
+**[FINDINGS.md](FINDINGS.md)**.
+
+**The winding pitch is 213-230 um, not the commonly cited 187.3 um.**
+Measured across four scrolls, every bootstrap 95% interval excludes 187.3.
+Three independent estimators agree within a scroll (208 / 220 / 222 um on
+PHerc. 1667), the result is stable across an 8x change in voxel size, and the
+obvious objection -- that perpendicular and radial pitch are different
+quantities -- was tested by measuring both on the same rays: they differ by
+2.4%, against a ~28% discrepancy. The 187.3 um figure is a distribution of
+*per-scroll medians*, not a within-scroll tolerance; used as one it is 10-15%
+too tight. Within a single scroll the pitch varies roughly two-fold.
+
+**Surface placement does not explain ink-detection failure.** Published ink
+rasters turn out to be pixel-exact with tifxyz grids at 20x, so placement can
+be correlated against ink cell by cell. Over offsets spanning 0-150 um the
+correlation with ink contrast is **-0.045**. This eliminates one of the six
+candidate causes Open Problem 6 lists as indistinguishable.
+
+**Loss of wrap-gap structure is a property of the scroll, not of sampling.**
+One scroll shows a separable papyrus/air split on only 2% of rays while others
+show 100%, and the obvious explanation -- that it is the only one scanned
+coarsely -- is wrong: degrading a fine scan to 18 um voxels, coarser than the
+2% scan, still yields 100%. So `gap_structure_frac` is a resolution-independent
+quality measure.
+
+**Planarity is resolution-dependent and must not be compared across scans.**
+It shifts 0.77 -> 0.92 over an 8x voxel-size range on identical data. Ranking
+scans by planarity produces a resolution ranking wearing a quality label.
+
+**Five hypotheses were tested and rejected**, including the sheet-switch
+detector this repository is named after. FINDINGS.md records what failed and
+why, since knowing which approaches do not work has value too.
+
 ## Why this exists
 
 [Open Problem 6](https://scrollprize.org/2026_open_problems) states that when
