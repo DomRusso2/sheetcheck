@@ -136,10 +136,14 @@ orientation across the sheet on PHerc1667:
 - median fiber angle at +20 um: 47.9 deg
 - **swing across the sheet: 0.1 deg**
 
-In-plane linearity is 0.10-0.16, i.e. the in-plane structure is essentially
-isotropic, while sheet planarity is 0.72-0.88, i.e. the *normal* direction is
-well defined. So the sheet is clean but the plies are not separable by a
-structure tensor at this resolution.
+Across the same samples, in-plane *linearity* is 0.10-0.16 while sheet
+*planarity* is 0.61-0.80. So the normal direction is well defined but the
+in-plane structure is essentially isotropic: the sheet is clean, and the plies
+are simply not separable by a structure tensor at this resolution.
+
+(Planarity values are not comparable between experiments here -- they depend on
+the structure-tensor smoothing scale and on resolution, per F8. The 0.61-0.80
+range is from this experiment specifically.)
 
 Consequence: recto/verso ply classification needs a learned fiber model such as
 the project's `fiber_hz_vt`, not classical orientation analysis.
