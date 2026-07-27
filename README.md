@@ -51,31 +51,41 @@ the opposite -- it shifts 0.77 -> 0.92 over the same 8x range on identical data,
 so ranking scans by planarity yields a resolution ranking wearing a quality
 label.
 
-### The winding pitch is larger than the commonly cited figure
+### RETRACTED: the winding-pitch measurement was wrong
 
-Measured at 213-230 um across four scrolls, every bootstrap 95% interval
-excluding 187.3 um:
+An earlier version of this repository reported a winding pitch of 213-230 um
+across four scrolls, with every confidence interval excluding the commonly
+cited 187.3 um. **That result is withdrawn.**
 
-![pitch by scroll](figures/pitch_by_scroll.png)
+[IyanDopico](https://github.com/IyanDopico/vesuvius-sheet-tools) binned winding
+gaps by radius on PHerc. Paris 4 (706 human-annotated pairs in one z window)
+and found a monotonic 136 -> 259 um where this repository was flat and
+unordered, with a PHerc1218 control (9,054 pairs) flat to 1.001 across
+0.2-27 mm that rules out a radius-dependent bias in their own measure.
 
-**This has been found independently.**
-[winding-sync](https://github.com/abundantjoe/winding-sync) reports 225 um
-(range 207-259) across all 13 Grand Prize scrolls using a different method --
-lamina crossing counts rather than autocorrelation period. Two implementations
-agreeing to within 1% is good evidence the number is real; the credit for
-breadth is theirs, with 13 scrolls to these four.
+The cause is now characterised. The estimator here is exact on periodic
+signals, but real scroll rays are aperiodic -- spacing varies along a ray,
+sheets are missed, wraps merge -- and measure autocorrelation strength around
+0.22. At that aperiodicity:
 
-What this repository adds is the robustness argument. The measurement is
-**stable across an 8x change in voxel size** (222 / 221 / 222 / 218 um from
-2.26 to 18.06 um voxels), which bears directly on winding-sync's stated
-limitation that "the lamina counter varies with resolution". And the obvious
-objection -- that perpendicular and radial pitch are different quantities -- was
-tested by measuring both on the same rays: they differ by 2.4%, against a ~28%
-discrepancy, so the convention cannot account for the gap.
+| true pitch | strength 0.82 | strength 0.20 (real data) |
+| --- | --- | --- |
+| 140 um | 140 | **197** |
+| 180 um | 180 | **224** |
+| 220 um | 220 | **251** |
 
-The 187.3 um figure is a distribution of *per-scroll medians*, not a
-within-scroll tolerance; used as one it is 10-15% too tight. Within a single
-scroll the pitch varies roughly two-fold.
+The estimate is biased high by 30-60 um, the bias grows as the true pitch
+shrinks, and the dynamic range compresses toward the middle of the search band.
+That reproduces the published numbers exactly, and explains why the radial
+trend looked flat: the estimator was compressing real variation, not measuring
+its absence.
+
+Reproduce with `python scripts/m9_pitch_calibration.py`. Full account in
+[FINDINGS.md](FINDINGS.md).
+
+**Only this finding used that estimator.** The ink null, the resolution
+results, and the raster alignment above rest on the ink raster, the structure
+tensor and Otsu-based level detection, and are unaffected.
 
 ### What the measurements look like on real CT
 
@@ -143,7 +153,7 @@ surface normal and measures:
 | --- | --- |
 | `support` | Where the traced point sits between the ray's air-gap level (0.0) and its papyrus level (1.0) |
 | `offset_um` | Distance from the traced point to the centre of the nearest papyrus sheet |
-| `pitch_um` | Local wrap-to-wrap spacing, from the autocorrelation period of the ray |
+| `pitch_um` | **Unreliable -- do not use.** Autocorrelation period of the ray. Biased high by 30-60 um on real (aperiodic) scroll data; see the retraction above |
 | `gap_structure_frac` | Fraction of rays where papyrus and air are separable at all -- low values mark compressed regions |
 | `planarity` | Structure-tensor sheet-likeness of the CT at that point |
 

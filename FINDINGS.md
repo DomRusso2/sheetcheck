@@ -12,94 +12,60 @@ quoted from a smaller budget is noise.
 
 ---
 
-## F1. The winding pitch is 213-230 um, not 187 um
+## F1 and F2. RETRACTED: the winding-pitch measurements were wrong
 
-| Scroll | Voxel | Pitch (95% CI) |
-| --- | --- | --- |
-| PHercParis4 | 1.129 um | **213 [204, 222]** |
-| PHerc1667 | 1.129 um | **222 [209, 236]** |
-| PHerc0172 | 7.910 um | **224 [217, 231]** |
-| PHerc0139 | 1.129 um | **230 [225, 242]** |
+**These findings claimed the winding pitch is 213-230 um across four scrolls,
+with every confidence interval excluding the commonly cited 187.3 um, and that
+pitch varies about two-fold within a scroll. Both are withdrawn.**
 
-Median 223 um. **Every interval excludes 187.3 um**, the figure commonly taken
-from the winding-ruler pitch atlas.
+The error was found by [IyanDopico](https://github.com/IyanDopico/vesuvius-sheet-tools),
+who binned winding gaps by radius on PHerc. Paris 4 (706 human-annotated pairs
+in one z window) and got a monotonic 136 -> 259 um, against a flat and
+unordered result here over the same radii. Their control on PHerc1218 (9,054
+pairs) is flat to 1.001 across 0.2-27 mm, which rules out a radius-dependent
+bias in their own ruler.
 
-**Independently corroborated.**
-[winding-sync](https://github.com/abundantjoe/winding-sync) reports a winding
-spacing of 225 um (range 207-259) across all 13 Grand Prize scrolls, using
-lamina crossing counts rather than the autocorrelation period used here. Two
-independent implementations, different methods, agreeing to within 1%. That
-work covers 13 scrolls to these four, so the breadth is theirs; what follows
-below -- resolution invariance and the convention test -- is what this
-repository adds, and it speaks directly to winding-sync's stated limitation
-that "the lamina counter varies with resolution".
+### What was wrong
 
-Three independent estimators agree within PHerc1667, sharing almost no code
-path:
+`dominant_period` estimates the wrap pitch as the dominant autocorrelation
+period of the CT profile along the surface normal. It is exact on periodic
+signals -- `scripts/m9_pitch_calibration.py` recovers 136/160/180/200/220 um
+with zero bias at every additive-noise level tested.
 
-| Method | Pitch |
-| --- | --- |
-| Counting wraps along long radial rays | 208 um |
-| Autocorrelation of normal-ray intensity | 220 um |
-| Spiral slope `2*pi * dr/dtheta` | 222 um |
+Real scroll rays are not periodic. Wrap spacing varies along a single ray,
+sheets are missed, neighbouring wraps merge. Real rays measure autocorrelation
+strength around 0.22; additive noise alone cannot degrade a clean signal that
+far. Reproducing that regime with position jitter and dropped sheets:
 
-The measurement is resolution-independent across an 8x range. Reading one
-volume at successive pyramid levels, with scroll, segment, trace and scan all
-fixed:
+| true pitch | strength 0.82 | strength 0.36 | strength 0.20 (real data) |
+| --- | --- | --- | --- |
+| 140 um | 140 | 150 | **197** |
+| 180 um | 180 | 191 | **224** |
+| 220 um | 220 | 226 | **251** |
 
-| Effective voxel | Voxels per wrap | Pitch (95% CI) |
-| --- | --- | --- |
-| 2.26 um | 98.5 | 222 [209, 236] |
-| 4.52 um | 49.0 | 221 [210, 239] |
-| 9.03 um | 24.6 | 222 [208, 239] |
-| 18.06 um | 12.1 | 218 [208, 239] |
+At the aperiodicity real data has, the estimate is biased high by 30-60 um, the
+bias grows as the true pitch shrinks, and the dynamic range compresses toward
+the middle of the search band (215 um). With a 60% pitch gradient imposed along
+a ray the estimate barely moves.
 
-Two independently scanned volumes of the same segment agree as well
-(2.399 um: 230 [220, 238]; 1.129 um: 222 [209, 236]).
+That reproduces the published numbers exactly: a true 136 um core reads as
+~197 (this repository reported 207), and a true ~175 um reads as ~220 (this
+repository reported 213-230 everywhere). The flat radial profile was the
+estimator compressing real variation, not an absence of variation.
 
-**The measurement convention does not explain the gap.** Pitch along the
-surface normal is a *perpendicular* sheet spacing; spiral fitting yields a
-*radial* advance per turn. The surface normal is oblique to the radial
-direction by 19-28 degrees (M7), so the two could differ by up to ~13% -- the
-same order as the disagreement above, which would be a fatal confound.
+### What this does not affect
 
-Measuring both on the *same* rays from the *same* points on PHerc1667
-(`scripts/m8_pitch_convention.py`, n=421) settles it:
+Only F1 and F2 used the autocorrelation estimator. F3-F10 rest on the spiral
+fit, structure tensor, Otsu-based level detection and the ink raster alignment,
+and are unaffected. In particular F5 -- placement does not predict ink
+detectability -- is robust to a scale error in the offset axis: a distorted
+x-axis cannot manufacture a null correlation.
 
-| Quantity | Value (95% CI) |
-| --- | --- |
-| Perpendicular (normal ray) | 240.1 [219.5, 250.4] |
-| Radial (radial ray) | 238.7 [228.6, 249.7] |
-| Ratio radial/perpendicular | 1.024 [1.004, 1.042] |
-| Predicted 1/cos(theta) | 1.060 [1.052, 1.068] |
+### Reproduce the retraction
 
-(The paired run reports 240 um for PHerc1667 where the survey table reports
-222. It uses a longer ray and a different acceptance threshold, so the point
-estimates differ by ~8%; the intervals overlap at 220-236 and the comparison
-against 187.3 is unaffected. The two are consistent, not contradictory.)
-
-The convention effect is real but only ~2.4%, against a ~28% discrepancy.
-**Both conventions exclude 187.3 um.** The direction predicted by geometry is
-confirmed (radial >= perpendicular); the magnitude is about 40% of the
-idealised parallel-plane prediction, and the two intervals do not overlap --
-expected, since real wraps are curved rather than parallel planes, which
-dilutes the obliquity effect.
-
-**Why the discrepancy matters.** The winding-ruler figure (median 187.3 um, IQR
-181.5-193.4) is a distribution of *per-scroll medians across 35+ scrolls*. It is
-not a within-scroll spread, and its narrow IQR describes agreement between
-scroll averages rather than precision at any point. Used as a geometric
-tolerance it is roughly 10-15% too tight.
-
-## F2. Within one scroll the pitch varies about two-fold
-
-Per-ray p10-p90 spans are 106-338, 118-324, 114-322 and 119-334 um for the four
-scrolls above -- roughly 110-335 um throughout. The variation is systematic
-rather than noisy, tracking compressed versus expanded regions.
-
-Consequence for tooling: any threshold expressed as a fraction of "the pitch"
-must estimate the pitch locally. A global constant misfires in compressed
-regions and goes blind in expanded ones.
+```bash
+python scripts/m9_pitch_calibration.py
+```
 
 ## F3. Deformation is about four times the pitch
 
@@ -200,7 +166,8 @@ Same segment, same scroll, same scan, varying only the pyramid level:
 Finer voxels give *lower* planarity, because internal fiber structure becomes
 resolved and the sheet stops looking ideally flat.
 
-Pitch and offset are resolution-independent (F1, F4); planarity is not. Cross
+Offset is resolution-independent (F4); planarity is not. (The pitch
+measurements that once appeared here are retracted -- see F1/F2.) Cross
 comparing planarity between scans of different resolution produces a spurious
 "scan quality" ranking that is really a resolution ranking.
 
