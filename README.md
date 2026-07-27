@@ -18,36 +18,89 @@ not been written down anywhere.
 Full detail, with methods and confidence intervals, in
 **[FINDINGS.md](FINDINGS.md)**.
 
-**The winding pitch is 213-230 um, not the commonly cited 187.3 um.**
-Measured across four scrolls, every bootstrap 95% interval excludes 187.3.
-Three independent estimators agree within a scroll (208 / 220 / 222 um on
-PHerc. 1667), the result is stable across an 8x change in voxel size, and the
-obvious objection -- that perpendicular and radial pitch are different
-quantities -- was tested by measuring both on the same rays: they differ by
-2.4%, against a ~28% discrepancy. The 187.3 um figure is a distribution of
-*per-scroll medians*, not a within-scroll tolerance; used as one it is 10-15%
-too tight. Within a single scroll the pitch varies roughly two-fold.
+### Surface placement does not explain ink-detection failure
 
-**Surface placement does not explain ink-detection failure.** Published ink
-rasters turn out to be pixel-exact with tifxyz grids at 20x, so placement can
-be correlated against ink cell by cell. Over offsets spanning 0-150 um the
-correlation with ink contrast is **-0.045**. This eliminates one of the six
-candidate causes Open Problem 6 lists as indistinguishable.
+Published ink rasters turn out to be **pixel-exact with tifxyz grids at 20x** --
+mesh cell `(v, u)` owns ink pixels `[20v:20v+20, 20u:20u+20]`, with no
+registration or interpolation. That is not documented anywhere, and it makes
+placement and ink directly comparable cell by cell.
 
-**Loss of wrap-gap structure is a property of the scroll, not of sampling.**
-One scroll shows a separable papyrus/air split on only 2% of rays while others
-show 100%, and the obvious explanation -- that it is the only one scanned
-coarsely -- is wrong: degrading a fine scan to 18 um voxels, coarser than the
-2% scan, still yields 100%. So `gap_structure_frac` is a resolution-independent
-quality measure.
+Doing so across offsets spanning 0-150 um gives a correlation with ink contrast
+of **-0.045**:
 
-**Planarity is resolution-dependent and must not be compared across scans.**
-It shifts 0.77 -> 0.92 over an 8x voxel-size range on identical data. Ranking
-scans by planarity produces a resolution ranking wearing a quality label.
+![placement vs ink](figures/placement_vs_ink.png)
 
-**Five hypotheses were tested and rejected**, including the sheet-switch
-detector this repository is named after. FINDINGS.md records what failed and
-why, since knowing which approaches do not work has value too.
+Open Problem 6 lists six candidate causes for ink models failing to generalise
+and states they cannot be told apart. **Surface misplacement is ruled out** at
+the scale published traces actually exhibit -- consistent with ink models
+sampling a stack of layers around the surface, which makes them robust to
+modest offset by construction.
+
+### Wrap-gap structure is a scroll property; planarity is a resolution artefact
+
+One scroll resolves a papyrus/air split on only 2% of rays while others manage
+100%. The obvious explanation -- that it is the only one scanned coarsely -- is
+wrong. Degrading a fine scan through the OME-Zarr pyramid, with scroll, segment,
+trace and scan all fixed, leaves gap structure at 100% even at 18 um voxels,
+which is *coarser* than the 2% scan:
+
+![resolution series](figures/resolution_series.png)
+
+So `gap_structure_frac` measures the scroll, not the sampling. Planarity does
+the opposite -- it shifts 0.77 -> 0.92 over the same 8x range on identical data,
+so ranking scans by planarity yields a resolution ranking wearing a quality
+label.
+
+### The winding pitch is larger than the commonly cited figure
+
+Measured at 213-230 um across four scrolls, every bootstrap 95% interval
+excluding 187.3 um:
+
+![pitch by scroll](figures/pitch_by_scroll.png)
+
+**This has been found independently.**
+[winding-sync](https://github.com/abundantjoe/winding-sync) reports 225 um
+(range 207-259) across all 13 Grand Prize scrolls using a different method --
+lamina crossing counts rather than autocorrelation period. Two implementations
+agreeing to within 1% is good evidence the number is real; the credit for
+breadth is theirs, with 13 scrolls to these four.
+
+What this repository adds is the robustness argument. The measurement is
+**stable across an 8x change in voxel size** (222 / 221 / 222 / 218 um from
+2.26 to 18.06 um voxels), which bears directly on winding-sync's stated
+limitation that "the lamina counter varies with resolution". And the obvious
+objection -- that perpendicular and radial pitch are different quantities -- was
+tested by measuring both on the same rays: they differ by 2.4%, against a ~28%
+discrepancy, so the convention cannot account for the gap.
+
+The 187.3 um figure is a distribution of *per-scroll medians*, not a
+within-scroll tolerance; used as one it is 10-15% too tight. Within a single
+scroll the pitch varies roughly two-fold.
+
+### What the measurements look like on real CT
+
+Every claim above rests on detecting papyrus sheets along the surface normal, so
+here is that detection on real data rather than described:
+
+![profile check](figures/profile_check.png)
+
+The detector lands on genuine intensity peaks. The traced surface (red) sits on
+a sheet in some rays and in a low region in others, which matches the measured
+spread in `support` and is consistent with the Challenge team's note that
+surface predictions lie on the recto face and "do not always perfectly follow
+every small wobble".
+
+This view also exposes a limitation the summary statistics hid: rays 1 and 5
+contain large featureless stretches yet still pass the gap-structure test,
+because the *other* half of the ray carries enough contrast. `gap_structure_frac`
+is therefore a per-ray verdict, not a guarantee that the whole ray is
+well-resolved.
+
+### Five hypotheses were tested and rejected
+
+Including the sheet-switch detector this repository is named after. FINDINGS.md
+records what failed and why, since knowing which approaches do not work has
+value too.
 
 ## Why this exists
 

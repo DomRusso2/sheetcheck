@@ -24,6 +24,16 @@ quoted from a smaller budget is noise.
 Median 223 um. **Every interval excludes 187.3 um**, the figure commonly taken
 from the winding-ruler pitch atlas.
 
+**Independently corroborated.**
+[winding-sync](https://github.com/abundantjoe/winding-sync) reports a winding
+spacing of 225 um (range 207-259) across all 13 Grand Prize scrolls, using
+lamina crossing counts rather than the autocorrelation period used here. Two
+independent implementations, different methods, agreeing to within 1%. That
+work covers 13 scrolls to these four, so the breadth is theirs; what follows
+below -- resolution invariance and the convention test -- is what this
+repository adds, and it speaks directly to winding-sync's stated limitation
+that "the lamina counter varies with resolution".
+
 Three independent estimators agree within PHerc1667, sharing almost no code
 path:
 
@@ -281,3 +291,13 @@ raw per-ray arrays so the statistics can be recomputed without re-streaming.
 - Segments using the older `mesh/intermediate/tifxyz_normalized` layout
   (PHerc0332, PHercParis3) are not covered, since it is unverified whether those
   coordinates are in volume voxel space.
+- `gap_structure_frac` is a per-ray verdict, not a guarantee that a whole ray is
+  well-resolved. Visual inspection (`figures/profile_check.png`) shows rays with
+  large featureless stretches still passing, because the remainder of the ray
+  carries enough contrast to yield a valid papyrus/air split.
+- Sample counts here are four scrolls, one segment each, a few hundred rays per
+  segment. That is far below what the Challenge team asks for when validating a
+  claim against ground-truth meshes, and it is the main thing more compute would
+  buy. The pitch result replicates across all four and is independently
+  confirmed elsewhere; the per-scroll `support` and `offset` figures are
+  single-segment and should be read as such.
