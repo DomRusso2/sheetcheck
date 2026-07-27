@@ -117,7 +117,8 @@ repository settles it, and reports several other quantities needed to do so.
 ## Install
 
 ```bash
-pip install -e .
+pip install -e .              # measurement library
+pip install -e ".[figures]"   # also the figure scripts
 ```
 
 Python 3.10+. No credentials are needed -- the open-data bucket is public and
