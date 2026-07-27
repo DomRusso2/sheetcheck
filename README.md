@@ -1,72 +1,82 @@
 # sheetcheck
 
-Geometric measurement of traced papyrus surfaces in Herculaneum scroll CT data.
+Measurements of published traced papyrus surfaces against the CT they were
+traced from, streaming from the Vesuvius Challenge open-data bucket.
 
-`sheetcheck` measures how a traced surface (`tifxyz`) sits inside the CT volume
-it was traced from: how far it is from the papyrus it claims to follow, how the
-wraps are spaced around it, and how well-resolved the sheet structure is in that
-neighbourhood. It streams directly from the public Vesuvius Challenge S3 bucket,
-so nothing has to be downloaded in bulk.
+This repository set out to build a sheet-switch detector. That failed, along
+with several other attempts, and one published finding has since been
+retracted. What remains is a set of measurements and negative results, ordered
+below by how robust each one is, plus the streaming and geometry code that
+produced them.
 
-It was built to answer a specific question from the 2026 Open Problems list --
-whether **surface misplacement** explains ink-detection failures -- and along
-the way it produced a set of measurements about the published traces that had
-not been written down anywhere.
+Full detail and method in **[FINDINGS.md](FINDINGS.md)**.
 
-## What it found
+## Ink rasters are pixel-exact with tifxyz grids at 20x
 
-Full detail, with methods and confidence intervals, in
-**[FINDINGS.md](FINDINGS.md)**.
+For PHerc1667 segment `20260108140509`, the tifxyz grid is 1975 x 736 with
+`scale = 0.05` (20 volume voxels per grid cell) and the published ink raster is
+39500 x 14720 -- exactly 20x in both axes. So mesh cell `(v, u)` owns ink pixels
+`[20v : 20v+20, 20u : 20u+20]`, with no registration or interpolation.
 
-### Surface placement does not explain ink-detection failure
+This is arithmetic on published shapes, checkable in seconds, and it is not
+documented anywhere I could find. It makes any geometry-versus-ink study
+straightforward.
 
-Published ink rasters turn out to be **pixel-exact with tifxyz grids at 20x** --
-mesh cell `(v, u)` owns ink pixels `[20v:20v+20, 20u:20u+20]`, with no
-registration or interpolation. That is not documented anywhere, and it makes
-placement and ink directly comparable cell by cell.
+## Loss of wrap-gap structure is a scroll property, not a sampling artefact
 
-Doing so across offsets spanning 0-150 um gives a correlation with ink contrast
-of **-0.045**:
+One scroll resolves a papyrus/air split on only 2% of rays while others manage
+100%. The obvious reading -- that it is the only one scanned coarsely -- is
+wrong. Degrading a fine scan through the OME-Zarr pyramid, holding scroll,
+segment, trace and scan fixed, leaves gap structure at 100% even at 18 um
+voxels, which is *coarser* than the 2% scan:
+
+![resolution series](figures/resolution_series.png)
+
+## Planarity is resolution-dependent and unsafe to compare across scans
+
+The same data at different pyramid levels gives planarity 0.77 -> 0.92 over an
+8x voxel range. Ranking scans by planarity therefore produces a resolution
+ranking wearing a quality label.
+
+Both of these are controlled experiments -- one input, one variable changed --
+so a systematic error in the measurement affects both arms equally and the
+comparison survives it. That is why they sit above the next result.
+
+## Surface placement does not predict ink detectability -- with a caveat
+
+Using the 20x alignment above, placement and ink can be compared cell by cell.
+Across offsets spanning 0-150 um on PHerc1667, the correlation with ink
+contrast is **-0.045** (n = 554):
 
 ![placement vs ink](figures/placement_vs_ink.png)
 
 Open Problem 6 lists six candidate causes for ink models failing to generalise
-and states they cannot be told apart. **Surface misplacement is ruled out** at
-the scale published traces actually exhibit -- consistent with ink models
-sampling a stack of layers around the surface, which makes them robust to
-modest offset by construction.
+and states they cannot be told apart. This is evidence against *surface
+misplacement* being one of them, which is consistent with ink models sampling a
+stack of layers around the surface and so tolerating modest offset.
 
-### Wrap-gap structure is a scroll property; planarity is a resolution artefact
+**The caveat, stated plainly.** The offset axis comes from `find_sheets`, which
+detects papyrus as runs of high intensity. Papyrus is two plies, and if a sheet
+is sometimes split into two runs then the "sheet centre" can be a ply centre
+instead -- an error of order 25 um, against measured offsets of 26-37 um. A
+null result on a noisy axis is weaker than a null on a clean one. I have not
+ruled this out, and the honest reading is "no relationship detected with this
+measure" rather than "no relationship exists".
 
-One scroll resolves a papyrus/air split on only 2% of rays while others manage
-100%. The obvious explanation -- that it is the only one scanned coarsely -- is
-wrong. Degrading a fine scan through the OME-Zarr pyramid, with scroll, segment,
-trace and scan all fixed, leaves gap structure at 100% even at 18 um voxels,
-which is *coarser* than the 2% scan:
+## RETRACTED: the winding-pitch measurement
 
-![resolution series](figures/resolution_series.png)
+An earlier version reported a pitch of 213-230 um across four scrolls with every
+interval excluding the commonly cited 187.3 um. **Withdrawn.**
 
-So `gap_structure_frac` measures the scroll, not the sampling. Planarity does
-the opposite -- it shifts 0.77 -> 0.92 over the same 8x range on identical data,
-so ranking scans by planarity yields a resolution ranking wearing a quality
-label.
+[IyanDopico](https://github.com/IyanDopico/vesuvius-sheet-tools) found a
+monotonic 136 -> 259 um radial gradient on PHerc. Paris 4 (706 human-annotated
+pairs) where this repository was flat, with a PHerc1218 control (9,054 pairs)
+flat to 1.001 that rules out bias in their own measure.
 
-### RETRACTED: the winding-pitch measurement was wrong
-
-An earlier version of this repository reported a winding pitch of 213-230 um
-across four scrolls, with every confidence interval excluding the commonly
-cited 187.3 um. **That result is withdrawn.**
-
-[IyanDopico](https://github.com/IyanDopico/vesuvius-sheet-tools) binned winding
-gaps by radius on PHerc. Paris 4 (706 human-annotated pairs in one z window)
-and found a monotonic 136 -> 259 um where this repository was flat and
-unordered, with a PHerc1218 control (9,054 pairs) flat to 1.001 across
-0.2-27 mm that rules out a radius-dependent bias in their own measure.
-
-The cause is now characterised. The estimator here is exact on periodic
-signals, but real scroll rays are aperiodic -- spacing varies along a ray,
-sheets are missed, wraps merge -- and measure autocorrelation strength around
-0.22. At that aperiodicity:
+The cause is characterised in `scripts/m9_pitch_calibration.py`. The estimator
+is exact on periodic signals, but real scroll rays are aperiodic -- spacing
+varies along a ray, sheets are missed, wraps merge -- and measure
+autocorrelation strength around 0.22. At that aperiodicity:
 
 | true pitch | strength 0.82 | strength 0.20 (real data) |
 | --- | --- | --- |
@@ -74,55 +84,40 @@ sheets are missed, wraps merge -- and measure autocorrelation strength around
 | 180 um | 180 | **224** |
 | 220 um | 220 | **251** |
 
-The estimate is biased high by 30-60 um, the bias grows as the true pitch
-shrinks, and the dynamic range compresses toward the middle of the search band.
-That reproduces the published numbers exactly, and explains why the radial
-trend looked flat: the estimator was compressing real variation, not measuring
-its absence.
+Biased high by 30-60 um, worse for tighter packing, dynamic range compressed
+toward the search-band midpoint. That reproduces the retracted numbers exactly
+and explains why the radial trend looked flat.
 
-Reproduce with `python scripts/m9_pitch_calibration.py`. Full account in
-[FINDINGS.md](FINDINGS.md).
+**The transferable lesson: do not use signal periodicity to measure wrap pitch
+on scroll CT, and calibrate any estimator at the irregularity of the real data
+before publishing a number from it.** Validating on clean synthetic signals is
+not enough -- this one passed that test and still failed.
 
-**Only this finding used that estimator.** The ink null, the resolution
-results, and the raster alignment above rest on the ink raster, the structure
-tensor and Otsu-based level detection, and are unaffected.
+## Things that were tried and did not work
 
-### What the measurements look like on real CT
+Recorded because knowing which approaches fail has value, and each was tested
+before being abandoned:
 
-Every claim above rests on detecting papyrus sheets along the surface normal, so
-here is that detection on real data rather than described:
+| Attempt | Outcome |
+| --- | --- |
+| Sheet-switch detection by azimuth holonomy | Works on an isolated winding (0/113 false positives), fails on a merged multi-turn trace (~35%). Azimuth is not a winding coordinate on a crushed scroll |
+| Recto/verso ply classification from fiber orientation | No signal: 0.1 deg swing across the sheet, in-plane linearity 0.10-0.16 |
+| Predicting annotator disagreement from local CT | Best AUC 0.58 across four metrics |
+| Off-papyrus runs to localise sheet switches | Inconclusive; the support metric was miscalibrated at the time |
+| Repairing connectivity after CT masking | No problem to repair -- phantoms are spatially segregated outside the scroll, and masking leaves interior components untouched |
+
+## What the measurements look like on real CT
 
 ![profile check](figures/profile_check.png)
 
-The detector lands on genuine intensity peaks. The traced surface (red) sits on
-a sheet in some rays and in a low region in others, which matches the measured
-spread in `support` and is consistent with the Challenge team's note that
-surface predictions lie on the recto face and "do not always perfectly follow
-every small wobble".
+Blue is CT intensity along the surface normal, orange the detected sheet
+centres, red the traced surface. The detector lands on genuine peaks. The trace
+sits on a sheet in some rays and in a low region in others.
 
-This view also exposes a limitation the summary statistics hid: rays 1 and 5
-contain large featureless stretches yet still pass the gap-structure test,
-because the *other* half of the ray carries enough contrast. `gap_structure_frac`
-is therefore a per-ray verdict, not a guarantee that the whole ray is
-well-resolved.
-
-### Five hypotheses were tested and rejected
-
-Including the sheet-switch detector this repository is named after. FINDINGS.md
-records what failed and why, since knowing which approaches do not work has
-value too.
-
-## Why this exists
-
-[Open Problem 6](https://scrollprize.org/2026_open_problems) states that when
-ink models fail to generalise, it is unclear whether the cause is *scan quality,
-surface misplacement, label mismatch, architecture limits, ink morphology
-variation, or fundamental signal absence*. Six hypotheses, no way to tell them
-apart.
-
-Surface misplacement is the one that is purely geometric, so it is the one that
-can be settled by measurement rather than by training another model. This
-repository settles it, and reports several other quantities needed to do so.
+This also exposes a limitation the summary statistics hid: rays 1 and 5 contain
+large featureless stretches yet still pass the gap-structure test, because the
+other half of the ray carries enough contrast. `gap_structure_frac` is a
+per-ray verdict, not a guarantee that a whole ray is well-resolved.
 
 ## Install
 
@@ -131,74 +126,49 @@ pip install -e .              # measurement library
 pip install -e ".[figures]"   # also the figure scripts
 ```
 
-Python 3.10+. No credentials are needed -- the open-data bucket is public and
-is read anonymously.
-
-## Quick start
+Python 3.10+. No credentials needed -- the open-data bucket is read
+anonymously.
 
 ```bash
 python scripts/m3_survey.py --scrolls PHerc1667 --patches 10
-```
-
-This discovers a traced segment, pairs it with the exact CT volume it was
-registered against, samples rays along the surface normal, and reports the
-placement and geometry statistics for that trace.
-
-## What it measures
-
-For each sampled point on a traced surface, `sheetcheck` casts a ray along the
-surface normal and measures:
-
-| Quantity | Meaning |
-| --- | --- |
-| `support` | Where the traced point sits between the ray's air-gap level (0.0) and its papyrus level (1.0) |
-| `offset_um` | Distance from the traced point to the centre of the nearest papyrus sheet |
-| `pitch_um` | **Unreliable -- do not use.** Autocorrelation period of the ray. Biased high by 30-60 um on real (aperiodic) scroll data; see the retraction above |
-| `gap_structure_frac` | Fraction of rays where papyrus and air are separable at all -- low values mark compressed regions |
-| `planarity` | Structure-tensor sheet-likeness of the CT at that point |
-
-Every quantity is normalised against the ray's own contrast, so it is
-comparable across regions of differing density and across scrolls scanned at
-different energies and resolutions.
-
-## Design notes
-
-Three constraints shaped the implementation, each learned by measurement rather
-than assumed:
-
-**Everything is local.** Azimuth about a fitted scroll axis is *not* a usable
-winding coordinate. On PHerc. 1667 the radius wanders about a fitted spiral by
-roughly four times the winding pitch, so advancing 2*pi in azimuth does not
-reliably land one wrap later. Any quantity here that needed a global winding
-coordinate was removed.
-
-**Pitch is estimated locally, never assumed.** Within a single scroll the wrap
-pitch varies by roughly a factor of two. A global constant produces a detector
-that misfires in compressed regions and goes blind in expanded ones.
-
-**Ambiguity is reported, not silently resolved.** A ray that crosses almost no
-air has no meaningful papyrus/gap threshold. Rather than let Otsu split the
-papyrus distribution against itself and return a confident-looking number,
-those rays are reported as having no measurable gap structure.
-
-## Tests
-
-```bash
 pytest tests/
 ```
 
-The suite pins the measurement primitives against synthetic ground truth. Each
-test corresponds to a bug that occurred during development -- period estimation
-under a brightness envelope, sheet counting across two-ply papyrus, circle
-fitting on short arcs, and threshold estimation on rays with no gap.
+## What it measures
+
+| Quantity | Meaning |
+| --- | --- |
+| `support` | Where a traced point sits between the ray's air-gap level (0.0) and its papyrus level (1.0) |
+| `offset_um` | Distance to the centre of the nearest papyrus sheet. See the ply caveat above |
+| `gap_structure_frac` | Fraction of rays where papyrus and air are separable at all |
+| `planarity` | Structure-tensor sheet-likeness. Resolution-dependent -- do not compare across scans |
+| `pitch_um` | **Unreliable, do not use.** Retracted; see above |
+
+## Design notes
+
+**Everything is local.** Azimuth about a fitted scroll axis is not a usable
+winding coordinate: on PHerc1667 the radius wanders about a fitted spiral by
+roughly four times the wrap spacing, so advancing 2*pi in azimuth does not
+reliably land one wrap later. Every quantity that needed a global winding
+coordinate was removed.
+
+**Ambiguity is reported, not resolved.** A ray crossing almost no air has no
+meaningful papyrus/gap threshold; rather than let Otsu split the papyrus
+distribution against itself and return a confident-looking number, those rays
+are reported as having no measurable gap structure.
+
+## Tests
+
+25 tests pin the measurement primitives against synthetic ground truth. Each
+corresponds to a bug that occurred during development. Note the limits of this:
+the pitch estimator passed its synthetic tests and was still wrong on real data.
 
 ## Data
 
-Reads the AWS Open Data mirror at `s3://vesuvius-challenge-open-data/`.
-Surfaces are `tifxyz` (x/y/z TIFF triplet plus `meta.json`), volumes are
-multiscale OME-Zarr. Decoded meshes can be cached locally via
-`Surface.load(..., cache_dir=...)`; full-scroll meshes are large (the merged
-PHerc. 1667 trace is a 2061 x 30097 grid) and slow to re-fetch.
+Reads `s3://vesuvius-challenge-open-data/`. Surfaces are `tifxyz`, volumes are
+multiscale OME-Zarr. Decoded meshes can be cached via
+`Surface.load(..., cache_dir=...)` -- full-scroll meshes are large (the merged
+PHerc1667 trace is 2061 x 30097) and slow to refetch.
 
 ## Licence
 
